@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spoon-knife-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spoon-knife
+  template:
+    metadata:
+      labels:
+        app: spoon-knife
+    spec:
+      containers:
+      - name: spoon-knife
+        image: gcr.io/GCP_PROJECT_ID/spoon-knife:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spoon-knife-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: spoon-knife
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
