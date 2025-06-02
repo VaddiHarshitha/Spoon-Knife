@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: spoon-knife
-        image: gcr.io/GCP_PROJECT_ID/spoon-knife:latest
+        image: gcr.io/harshitha-test-461412/spoon-knife:latest
         ports:
         - containerPort: 80
 ---
