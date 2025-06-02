@@ -12,41 +12,30 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # ✅ Authenticate to Google Cloud (REQUIRED as of 2024)
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    # ✅ Set up gcloud CLI
     - name: Set up gcloud CLI
       uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
+        install_components: 'gke-gcloud-auth-plugin'
+        version: '>= 445.0.0'
 
-    # ✅ Verify active account (debug)
-    - name: Verify active account
-      run: gcloud config get-value account
-
-    # 🔐 Get GKE credentials
-    - name: Authenticate GKE
+    - name: Configure GKE credentials
       run: |
         gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --region ${{ secrets.GKE_CLUSTER_REGION }}
 
-    # 🐳 Build Docker image
     - name: Build Docker image
       run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/spoon-knife:latest .
 
-    # 🚀 Push Docker image to Container Registry
+    - name: Authenticate Docker for GCR
+      run: gcloud auth configure-docker gcr.io --quiet
+
     - name: Push to Container Registry
-      run: |
-        gcloud auth configure-docker
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/spoon-knife:latest
-    - name: Use legacy authentication plugin
-      run: gcloud config set auth/use_gke_gcloud_auth_plugin False
+      run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/spoon-knife:latest
 
-
-    # 📦 Deploy to GKE using kubectl
     - name: Deploy to GKE
-      run: |
-        kubectl apply -f k8s/deployment.yaml
+      run: kubectl apply -f k8s/deployment.yaml
